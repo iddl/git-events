@@ -13,28 +13,31 @@ class EventReader:
 class CommentEvent:
 
     @staticmethod
-    def matches(self, event):
+    def matches(event):
         if event.get_type() == 'Comment':
             return True
         else:
             return False
 
     @staticmethod
-    def extract(self, event):
-        return None
+    def extract(event):
+        formatted_event = dict()
+        formatted_event['type'] = event.get_type()
+        formatted_event['message'] = 'Comment: ' + event.get_title()
+        return formatted_event
 
 
 class PullRequestEvent:
 
     @staticmethod
-    def matches(self, event):
+    def matches(event):
         if event.get_type() == 'PullRequest':
             return True
         else:
             return False
 
     @staticmethod
-    def extract(self, event):
+    def extract(event):
         formatted_event = dict()
         formatted_event['type'] = event.get_type()
         formatted_event['message'] = 'Pull Request: ' + event.get_title()
@@ -51,8 +54,8 @@ class NotificationFilter:
 
         for event in feed:
             readable_event = EventReader(event)
-            for even_type in self.event_types:
-                if even_type.matches(readable_event):
-                    events.append(even_type.extract(readable_event))
+            for event_type in self.event_types:
+                if event_type.matches(readable_event):
+                    events.append(event_type.extract(readable_event))
 
         return events
