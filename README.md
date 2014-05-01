@@ -1,4 +1,6 @@
-git-events
-==========
+Git-events
+=============
 
-Git notification system
+Reports various git events.
+
+Don't mind me, I'm experimental.
