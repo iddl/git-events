@@ -2,6 +2,10 @@
 # Config files
 *.ini
 
+# Test files (for now)
+tests
+
+
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

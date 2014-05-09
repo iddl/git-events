@@ -1,16 +1,16 @@
 import time, sys
 from config import Config
-from notificationGetter import NotificationGetter
+from eventGetter import EventGetterFactory
 from notificationDisplayer import NotificationDisplayerFactory
-from notificationFilter import *
+from eventFilter import *
 
 
 class GitEvents:
     def __init__(self):
-        self.notifications = NotificationGetter(settings)
+        self.notifications = EventGetterFactory().get(settings)
         self.notification_system = NotificationDisplayerFactory().get()
         event_types = [CommentEvent(), PullRequestEvent()]
-        self.notification_filter = NotificationFilter(event_types)
+        self.notification_filter = EventFilter(event_types)
 
     def get_updates(self):
         current_feed = self.notifications.get_unread()
@@ -30,5 +30,6 @@ if __name__ == "__main__":
     polling_interval = settings.getint('Connection','pollinginterval')
 
     while(True):
+        print("polling")
         updates.get_updates()
-        time.sleep(polling_interval*60)
+        time.sleep(polling_interval*10)
