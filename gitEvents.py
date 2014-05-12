@@ -10,13 +10,15 @@ class GitEvents:
         self.notifications = EventGetterFactory().get(settings)
         self.notification_system = NotificationDisplayerFactory().get()
         event_types = [CommentEvent(), PullRequestEvent()]
-        self.notification_filter = EventFilter(event_types)
+        event_filters = [TimeFilter(1)]
+        self.notification_filter = EventFilter(event_types, event_filters)
 
     def get_updates(self):
         current_feed = self.notifications.get_unread()
         events = self.notification_filter.extract(current_feed)
         for event in events:
             self.notification_system.display(event['message'])
+
 
 if __name__ == "__main__":
 
@@ -30,6 +32,5 @@ if __name__ == "__main__":
     polling_interval = settings.getint('Connection','pollinginterval')
 
     while(True):
-        print("polling")
         updates.get_updates()
         time.sleep(polling_interval*10)
