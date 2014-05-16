@@ -37,8 +37,6 @@ class EventGetterGithub:
         self.last_poll = datetime.datetime.utcnow()
 
         if request.status_code == requests.codes.ok:
-            print(request.headers["etag"])
-            print(request.text)
             return request.json()
         elif request.status_code == 304:
             return []

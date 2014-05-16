@@ -57,13 +57,13 @@ class TimeFilter:
         self.start_time = start_time
         self.end_time = end_time
 
-    def set_interval(self, start, end):
+    def set_interval(self, start=datetime.datetime(1, 1, 1), end=datetime.datetime(9999, 12, 31)):
         self.start_time = start
         self.end_time = end
 
     def matches(self, event):
-        event_creation_time = time.strptime(event["created_at"],"%Y-%m-%dT%H:%M:%SZ")[:6]
-        event_creation_time = datetime.datetime.utcfromtimestamp(time.mktime(event_creation_time + (0,0,0)))
+        event_creation_time = time.strptime(event["created_at"],"%Y-%m-%dT%H:%M:%SZ")[:6] + (0,None)
+        event_creation_time = datetime.datetime(*event_creation_time)
         if self.start_time < event_creation_time and self.end_time > event_creation_time:
             return True
         else:
