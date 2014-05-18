@@ -1,4 +1,5 @@
 import requests, re, datetime
+from messages import Messages
 
 GITHUB_EVENT_ENDPOINT = 'https://api.github.com/users/:username/received_events'
 
@@ -23,7 +24,7 @@ class EventGetterGithub:
         request_headers = {'Authorization' : "token " + self.authorization}
         etagrequest = requests.get(endpoint, headers=request_headers)
         if etagrequest.status_code != requests.codes.ok:
-            raise Exception
+            raise Exception(Messages.GITHUB_API_ERROR)
         etag = etagrequest.headers["etag"]
         return etag
 
@@ -43,4 +44,4 @@ class EventGetterGithub:
         elif request.status_code == 304:
             return []
         else:
-            raise Exception("Error getting new notifications.")
+            raise Exception()

@@ -1,4 +1,5 @@
 import subprocess, os, sys
+from messages import Messages
 
 class NotificationDisplayer:
 
@@ -22,7 +23,8 @@ class NotificationDisplayerGrowlnotify(NotificationDisplayer):
         return
 
     def display(self, message):
-        subprocess.Popen(['notify-send', '-i', self.icon, message])
+        # to be implemented
+        pass
 
 class NotificationDisplayerFactory:
 
@@ -35,4 +37,4 @@ class NotificationDisplayerFactory:
         elif sys.platform == 'darwin':
             return NotificationDisplayerGrowlnotify()
         else:
-            raise Exception
+            raise Exception(Messages.INCOMPATIBLE_OS)
