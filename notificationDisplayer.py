@@ -1,4 +1,4 @@
-import subprocess, os
+import subprocess, os, sys
 
 class NotificationDisplayer:
 
@@ -15,10 +15,24 @@ class NotificationDisplayerNotifySend(NotificationDisplayer):
     def display(self, message):
         subprocess.Popen(['notify-send', '-i', self.icon, message])
 
+class NotificationDisplayerGrowlnotify(NotificationDisplayer):
+
+    def __init__(self):
+        NotificationDisplayer.__init__(self)
+        return
+
+    def display(self, message):
+        subprocess.Popen(['notify-send', '-i', self.icon, message])
+
 class NotificationDisplayerFactory:
 
     def __init__(self):
         return
 
     def get(self):
-        return NotificationDisplayerNotifySend()
+        if sys.platform == 'linux':
+            return NotificationDisplayerNotifySend()
+        elif sys.platform == 'darwin':
+            return NotificationDisplayerGrowlnotify()
+        else:
+            raise Exception

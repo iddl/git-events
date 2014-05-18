@@ -5,15 +5,22 @@ from eventGetter import EventGetterFactory
 from notificationDisplayer import NotificationDisplayerFactory
 from eventFilter import *
 
+def abort(message):
+    print(message)
+    sys.exit(1)
 
 class GitEvents:
     def __init__(self):
         try:
+            self.notification_system = NotificationDisplayerFactory().get()
+        except Exception:
+            abort("Your OS is not compatible with Git events")
+
+        try:
             self.notifications = EventGetterFactory().get(settings)
         except Exception:
-            print("I'm unable to access your GitHub account, please check your internet connection and GitHub access token.")
-            sys.exit(1)
-        self.notification_system = NotificationDisplayerFactory().get()
+            abort("I'm unable to access your GitHub account, please check your internet connection and GitHub access token.")
+
         self.last_update_at = datetime.datetime.utcnow()
         self.timeFilter = TimeFilter()
         event_types = [CommentEvent(), PullRequestEvent(), PushEvent()]
@@ -43,4 +50,4 @@ if __name__ == "__main__":
 
     while(True):
         updates.get_updates()
-        time.sleep(polling_interval*60)
+        time.sleep(polling_interval*10)
