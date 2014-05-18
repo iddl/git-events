@@ -8,7 +8,11 @@ from eventFilter import *
 
 class GitEvents:
     def __init__(self):
-        self.notifications = EventGetterFactory().get(settings)
+        try:
+            self.notifications = EventGetterFactory().get(settings)
+        except Exception:
+            print("I'm unable to access your GitHub account, please check your internet connection and GitHub access token.")
+            sys.exit(1)
         self.notification_system = NotificationDisplayerFactory().get()
         self.last_update_at = datetime.datetime.utcnow()
         self.timeFilter = TimeFilter()
@@ -39,4 +43,4 @@ if __name__ == "__main__":
 
     while(True):
         updates.get_updates()
-        time.sleep(polling_interval*10)
+        time.sleep(polling_interval*60)

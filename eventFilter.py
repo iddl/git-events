@@ -1,5 +1,8 @@
 import time, datetime
 
+# This is used to access deeply nested dictionaries
+# as checking whether a key exists at each access
+# is not a viable option.
 class NestedDict():
 
     @staticmethod

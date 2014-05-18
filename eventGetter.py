@@ -22,6 +22,8 @@ class EventGetterGithub:
     def get_etag(self, endpoint):
         request_headers = {'Authorization' : "token " + self.authorization}
         etagrequest = requests.get(endpoint, headers=request_headers)
+        if etagrequest.status_code != requests.codes.ok:
+            raise Exception
         etag = etagrequest.headers["etag"]
         return etag
 
