@@ -1,5 +1,19 @@
 import time, datetime
 
+class NestedDict():
+
+    @staticmethod
+    def extract(object, path, defaultValue=''):
+        result = object
+        for accessor in path:
+            if type(result) is not dict:
+                return defaultValue
+            if accessor in result:
+                result = result[accessor]
+            else:
+                return defaultValue
+        return result
+
 class CommentEvent:
 
     def matches(self, event):
@@ -10,9 +24,9 @@ class CommentEvent:
 
     def extract(self, event):
         formatted_event = dict()
-        comment_author = event["actor"]["login"]
-        comment_content = event["payload"]["comment"]["body"]
-        comment_repo = event["repo"]["name"]
+        comment_author = NestedDict.extract(event, ["actor", "login"])
+        comment_content = NestedDict.extract(event, ["payload", "comment", "body"])
+        comment_repo = NestedDict.extract(event, ["repo", "name"])
         formatted_event['message'] = comment_author + ' commented on ' + comment_repo + ': ' + comment_content
         return formatted_event
 
@@ -27,8 +41,8 @@ class PullRequestEvent:
 
     def extract(self, event):
         formatted_event = dict()
-        pullrequest_author = event["actor"]["login"]
-        pullrequest_title = event["payload"]["pull_request"]["title"]
+        pullrequest_author = NestedDict.extract(event, ["actor", "login"])
+        pullrequest_title = NestedDict.extract(event, ["payload", "pull_request", "title"])
         formatted_event['message'] = pullrequest_author + ' made a pull request: ' + pullrequest_title
         return formatted_event
 
@@ -42,9 +56,9 @@ class PushEvent:
 
     def extract(self, event):
         formatted_event = dict()
-        push_author = event["actor"]["login"]
-        push_commits = event["payload"]["commits"]
-        push_branch = event["payload"]["ref"]
+        push_author = NestedDict.extract(event, ["actor", "login"])
+        push_commits = NestedDict.extract(event, ["payload", "commits"])
+        push_branch = NestedDict.extract(event, ["payload", "ref"])
         push_commit_messages = list(map(lambda commit: commit["message"], push_commits))
         formatted_event["message"] = push_author + ' pushed to ' + push_branch + ': '
         for message in push_commit_messages:
