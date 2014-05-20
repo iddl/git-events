@@ -1,17 +1,17 @@
 import sys, argparse
+from termcolor import colored
 from config import Config
 from eventGetter import EventGetterFactory
 from notificationDisplayer import NotificationDisplayerFactory
+from bootstrap import Bootstrap
 from eventFilter import *
 from messages import Messages
 
 #need some refactoring in here
 
 def abort(message=""):
-    print(message)
+    print(colored(message, 'red'))
     sys.exit(1)
-
-
 
 class GitEvents:
     def __init__(self):
@@ -47,16 +47,20 @@ if __name__ == "__main__":
     parser.add_argument('-interval', type=int, metavar="INTERVAL", nargs=1, help='set polling interval in minutes (default: 1)', dest="set_interval")
     args = parser.parse_args()
 
-    try:
-        settings = configuration.get()
-    except Exception as configurationException:
-        abort(configurationException)
+    settings = configuration.get()
+    if not configuration.is_set_up():
+        bootstrapper = Bootstrap(configuration)
+        try:
+            bootstrapper.setup()
+        except Exception as boostrap_exception:
+            abort(Messages.SETUP_FAIL)
 
     if args.set_interval:
         interval = args.set_interval[0]
-        configuration.set_interval(interval)
+        configuration.set_value('Connection', 'pollinginterval', interval)
         print(Messages.INTERVAL_SET)
     else:
+        print(colored(Messages.RUNNING, 'green'))
         updates = GitEvents()
         polling_interval = settings.getint('Connection','pollinginterval')
 

@@ -14,23 +14,22 @@ class Config:
 
     def create_default_config(self):
         self.configuration['Connection'] = { 'pollinginterval' : 1 }
-        self.configuration['Account'] = { 'token' : ''}
+        self.configuration['Account'] = {}
         self.save_config()
 
-    # need to use a key value based approach to avoid
-    # explosion of methods
-    def set_token(self, token):
-        self.configuration['Account']['accesstoken'] = token
-        self.save_config()
-
-    # ditto
-    def set_interval(self, interval):
-        self.configuration['Connection']['pollinginterval'] = str(interval)
+    # should not have the section argument to resemble a
+    # more generic interface
+    def set_value(self, section, key, value):
+        self.configuration[section][key] = value
         self.save_config()
 
     def get(self):
         self.configuration.read(CFG_FILE)
         if len(self.configuration.sections()) == 0:
             self.create_default_config()
-            raise Exception(Messages.CONFIGURATION_ERROR)
         return self.configuration
+
+    def is_set_up(self):
+        if self.configuration.has_option('Account', 'username'):
+            return True
+        return False

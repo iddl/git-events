@@ -1,4 +1,4 @@
-import requests, re, datetime
+import requests, re, datetime, json
 from messages import Messages
 
 GITHUB_EVENT_ENDPOINT = 'https://api.github.com/users/:username/received_events'
