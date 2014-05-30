@@ -1,14 +1,12 @@
-import os, sys, atexit, signal
+import os, atexit, signal
 import argparse
 from config import Config
 from bootstrap import Bootstrap
 from messages import Messages
 from processes import Processes
-from core import *
+from core import Core
 from eventGetter import EventGetterFactory
 from notificationDisplayer import NotificationDisplayerFactory
-
-
 
 def stop():
     runningProcess = Processes()
@@ -49,7 +47,7 @@ def start():
 
     # git-events you are cleared for takeoff, fork
     pid = os.fork()
-    if(pid == 0):
+    if pid == 0:
         atexit.register(cleanup)
         messages.use_logfile()
         runningProcess.register_process()

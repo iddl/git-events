@@ -1,5 +1,4 @@
 import configparser
-from messages import Messages
 
 CFG_FILE = 'cfg.ini'
 
