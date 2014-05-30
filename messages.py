@@ -1,7 +1,15 @@
+import sys
+from termcolor import colored
+
 class Messages():
 
-    #Status
-    RUNNING = 'Git-events is now running...'
+    LOGFILE = "git-events.log"
+
+    #Status and operations
+    RUNNING = 'Successfully started gitevents'
+    WAS_RUNNING = 'Gitevents is already running'
+    NOT_RUNNING = 'Git-events is not running'
+    STOPPED = 'Successfully stopped gitevents'
 
     #Errors
     INCOMPATIBLE_OS = 'Your OS is not compatible with Git events'
@@ -18,4 +26,19 @@ class Messages():
     INPUT_PASSWORD = 'Please type your Github account password: '
     SETUP_FAIL = 'Failed to create Github access token'
     SETUP_SUCCESS = 'Successfully saved access token. You are all set.'
+
+    def abort(self, message=""):
+        print(colored(message, 'red'))
+        sys.exit(1)
+
+    def print_success(self, message=""):
+        print(colored(message, 'green'))
+
+    def log(self, message=""):
+        print(message)
+
+    def use_logfile(self):
+        sys.stdout = open(self.LOGFILE, 'w')
+        sys.stderr = open(self.LOGFILE, 'w')
+
 

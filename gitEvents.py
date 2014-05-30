@@ -1,50 +1,69 @@
-import sys, argparse
-from termcolor import colored
+import os, sys, atexit, signal
+import argparse
 from config import Config
+from bootstrap import Bootstrap
+from messages import Messages
+from processes import Processes
+from core import *
 from eventGetter import EventGetterFactory
 from notificationDisplayer import NotificationDisplayerFactory
-from bootstrap import Bootstrap
-from eventFilter import *
-from messages import Messages
 
-#need some refactoring in here
 
-def abort(message=""):
-    print(colored(message, 'red'))
-    sys.exit(1)
 
-class GitEvents:
-    def __init__(self):
-        try:
-            self.notification_system = NotificationDisplayerFactory().get()
-        except Exception as notificationSystemException:
-            abort(notificationSystemException)
+def stop():
+    runningProcess = Processes()
 
-        try:
-            self.notifications = EventGetterFactory().get(settings)
-        except Exception as eventGetterExpection:
-            abort(eventGetterExpection)
+    if not runningProcess.is_running():
+        messages.abort(Messages.NOT_RUNNING)
+    pid = runningProcess.get_pid()
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except Exception as processKillException:
+        pass
+    cleanup()
+    messages.print_success(Messages.STOPPED)
 
-        self.last_update_at = datetime.datetime.utcnow()
-        self.timeFilter = TimeFilter()
-        event_types = [CommentEvent(), PullRequestEvent(), PushEvent()]
-        event_filters = [self.timeFilter]
-        self.notification_filter = EventFilter(event_types, event_filters)
+def cleanup():
+    running_process = Processes()
+    running_process.unregister_process()
 
-    def get_updates(self):
-        self.timeFilter.set_interval(self.last_update_at)
-        self.last_update_at = datetime.datetime.utcnow()
-        current_feed = self.notifications.get_unread()
-        events = self.notification_filter.extract(current_feed)
-        for event in events:
-            self.notification_system.display(event['message'])
+def start():
+    settings = Config().get()
+    messages = Messages()
+    runningProcess = Processes()
+
+    if runningProcess.is_running():
+        messages.abort(Messages.WAS_RUNNING)
+
+    try:
+        notification_system = NotificationDisplayerFactory().get()
+    except Exception as notificationSystemException:
+        messages.abort(notificationSystemException)
+
+    try:
+        notifications = EventGetterFactory().get(settings)
+    except Exception as eventGetterException:
+        messages.abort(eventGetterException)
+
+    messages.print_success(Messages.RUNNING)
+
+    # git-events you are cleared for takeoff, fork
+    pid = os.fork()
+    if(pid == 0):
+        atexit.register(cleanup)
+        messages.use_logfile()
+        runningProcess.register_process()
+        signal.signal(signal.SIGTERM, cleanup)
+        core = Core(messages, settings, notification_system, notifications)
+        core.start()
 
 if __name__ == "__main__":
 
     configuration = Config()
+    messages = Messages()
 
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('-interval', type=int, metavar="INTERVAL", nargs=1, help='set polling interval in minutes (default: 1)', dest="set_interval")
+    parser.add_argument('operation', metavar="[start|stop|restart]", action="store", help='Start git-events')
     args = parser.parse_args()
 
     settings = configuration.get()
@@ -53,17 +72,15 @@ if __name__ == "__main__":
         try:
             bootstrapper.setup()
         except Exception as boostrap_exception:
-            abort(Messages.SETUP_FAIL)
+            messages.abort(Messages.SETUP_FAIL)
 
-    if args.set_interval:
-        interval = args.set_interval[0]
-        configuration.set_value('Connection', 'pollinginterval', interval)
-        print(Messages.INTERVAL_SET)
+    if args.operation == 'start':
+        start()
+    elif args.operation == 'restart':
+        stop()
+        start()
+    elif args.operation == 'stop':
+        stop()
     else:
-        print(colored(Messages.RUNNING, 'green'))
-        updates = GitEvents()
-        polling_interval = settings.getint('Connection','pollinginterval')
+        print("Invalid args")
 
-        while(True):
-            updates.get_updates()
-            time.sleep(polling_interval*10)
