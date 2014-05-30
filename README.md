@@ -3,7 +3,7 @@ Git-events
 
 Cool tool that reports various GitHub events.
 
-This project is **experimental**.
+This project is **experimental** and needs some serious refactoring.
 
 ##Installing dependencies
 
