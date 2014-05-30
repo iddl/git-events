@@ -1,46 +1,84 @@
-import sys
-import datetime
+import os, atexit, signal
+import argparse
 from config import Config
+from bootstrap import Bootstrap
+from messages import Messages
+from processes import Processes
+from core import Core
 from eventGetter import EventGetterFactory
 from notificationDisplayer import NotificationDisplayerFactory
-from eventFilter import *
 
+def stop():
+    runningProcess = Processes()
 
-class GitEvents:
-    def __init__(self):
-        try:
-            self.notifications = EventGetterFactory().get(settings)
-        except Exception:
-            print("I'm unable to access your GitHub account, please check your internet connection and GitHub access token.")
-            sys.exit(1)
-        self.notification_system = NotificationDisplayerFactory().get()
-        self.last_update_at = datetime.datetime.utcnow()
-        self.timeFilter = TimeFilter()
-        event_types = [CommentEvent(), PullRequestEvent(), PushEvent()]
-        event_filters = [self.timeFilter]
-        self.notification_filter = EventFilter(event_types, event_filters)
+    if not runningProcess.is_running():
+        messages.abort(Messages.NOT_RUNNING)
+    pid = runningProcess.get_pid()
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except Exception as processKillException:
+        pass
+    cleanup()
+    messages.print_success(Messages.STOPPED)
 
-    def get_updates(self):
-        self.timeFilter.set_interval(self.last_update_at)
-        self.last_update_at = datetime.datetime.utcnow()
-        current_feed = self.notifications.get_unread()
-        events = self.notification_filter.extract(current_feed)
-        for event in events:
-            self.notification_system.display(event['message'])
+def cleanup():
+    running_process = Processes()
+    running_process.unregister_process()
 
+def start():
+    settings = Config().get()
+    messages = Messages()
+    runningProcess = Processes()
 
+    if runningProcess.is_running():
+        messages.abort(Messages.WAS_RUNNING)
+
+    try:
+        notification_system = NotificationDisplayerFactory().get()
+    except Exception as notificationSystemException:
+        messages.abort(notificationSystemException)
+
+    try:
+        notifications = EventGetterFactory().get(settings)
+    except Exception as eventGetterException:
+        messages.abort(eventGetterException)
+
+    messages.print_success(Messages.RUNNING)
+
+    # git-events you are cleared for takeoff, fork
+    pid = os.fork()
+    if pid == 0:
+        atexit.register(cleanup)
+        messages.use_logfile()
+        runningProcess.register_process()
+        signal.signal(signal.SIGTERM, cleanup)
+        core = Core(messages, settings, notification_system, notifications)
+        core.start()
 
 if __name__ == "__main__":
 
-    try:
-        settings = Config().get()
-    except Exception:
-        print("Please configure cfg.ini before starting")
-        sys.exit(1)
+    configuration = Config()
+    messages = Messages()
 
-    updates = GitEvents()
-    polling_interval = settings.getint('Connection','pollinginterval')
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('operation', metavar="[start|stop|restart]", action="store", help='Start git-events')
+    args = parser.parse_args()
 
-    while(True):
-        updates.get_updates()
-        time.sleep(polling_interval*60)
+    settings = configuration.get()
+    if not configuration.is_set_up():
+        bootstrapper = Bootstrap(configuration)
+        try:
+            bootstrapper.setup()
+        except Exception as boostrap_exception:
+            messages.abort(Messages.SETUP_FAIL)
+
+    if args.operation == 'start':
+        start()
+    elif args.operation == 'restart':
+        stop()
+        start()
+    elif args.operation == 'stop':
+        stop()
+    else:
+        print("Invalid args")
+

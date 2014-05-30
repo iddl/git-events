@@ -1,6 +1,11 @@
 ### Misc ###
+
 # Config files
 *.ini
+
+# Log files
+*.log
+*.pid
 
 # Test files (for now)
 tests
