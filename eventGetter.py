@@ -19,6 +19,7 @@ class EventGetterGithub:
         self.endpoint = re.sub(":username", self.username, GITHUB_EVENT_ENDPOINT)
         self.etag = self.get_etag(self.endpoint)
         self.last_poll = None
+        self.poll_interval = None
 
     def get_etag(self, endpoint):
         request_headers = {'Authorization' : "token " + self.authorization}

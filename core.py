@@ -29,5 +29,5 @@ class Core:
 
         while(True):
             self.tick()
-            time.sleep(polling_interval*60)
+            time.sleep(polling_interval*10)
 

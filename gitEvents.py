@@ -1,4 +1,4 @@
-import os, atexit, signal
+import os, atexit, signal, sys
 import argparse
 from config import Config
 from bootstrap import Bootstrap
@@ -25,12 +25,26 @@ def cleanup():
     running_process = Processes()
     running_process.unregister_process()
 
-def start():
+# should be perfected using a double-fork
+def daemonize():
+    running_process = Processes()
+
+    pid = os.fork()
+    if pid == 0:
+        atexit.register(cleanup)
+        running_process.register_process()
+        signal.signal(signal.SIGTERM, cleanup)
+        messages.print_success(Messages.RUNNING)
+        messages.use_logfile()
+    else:
+        sys.exit(0)
+
+def start(daemon=True):
     settings = Config().get()
     messages = Messages()
-    runningProcess = Processes()
+    running_process = Processes()
 
-    if runningProcess.is_running():
+    if running_process.is_running():
         messages.abort(Messages.WAS_RUNNING)
 
     try:
@@ -43,17 +57,13 @@ def start():
     except Exception as eventGetterException:
         messages.abort(eventGetterException)
 
-    messages.print_success(Messages.RUNNING)
+    core = Core(messages, settings, notification_system, notifications)
 
-    # git-events you are cleared for takeoff, fork
-    pid = os.fork()
-    if pid == 0:
-        atexit.register(cleanup)
-        messages.use_logfile()
-        runningProcess.register_process()
-        signal.signal(signal.SIGTERM, cleanup)
-        core = Core(messages, settings, notification_system, notifications)
-        core.start()
+    if daemon:
+        daemonize()
+
+    core.start()
+
 
 if __name__ == "__main__":
 
@@ -62,6 +72,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('operation', metavar="[start|stop|restart]", action="store", help='Start git-events')
+    parser.add_argument('--no-daemon', action="store_false", dest="daemonize", help='Do not run git-event as a daemon')
     args = parser.parse_args()
 
     settings = configuration.get()
@@ -73,7 +84,7 @@ if __name__ == "__main__":
             messages.abort(Messages.SETUP_FAIL)
 
     if args.operation == 'start':
-        start()
+        start(args.daemonize)
     elif args.operation == 'restart':
         stop()
         start()
