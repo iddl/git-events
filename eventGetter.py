@@ -1,5 +1,6 @@
 import requests, re, datetime, json, datetime, time
-from messages import Messages
+from messages import *
+from config import settings
 
 GITHUB_EVENT_ENDPOINT = 'https://api.github.com/users/:username/received_events'
 
@@ -53,3 +54,8 @@ class EventGetterGithub:
             return []
         else:
             raise Exception()
+
+try:
+    notifications = EventGetterFactory().get(settings)
+except Exception as eventGetterException:
+    messages.abort(eventGetterException)

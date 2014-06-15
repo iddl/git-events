@@ -26,3 +26,5 @@ class Processes():
             pid = int(handle.read())
             handle.close()
             return pid
+
+running_process = Processes()

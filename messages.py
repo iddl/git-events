@@ -41,4 +41,4 @@ class Messages():
         sys.stdout = open(self.LOGFILE, 'w')
         sys.stderr = open(self.LOGFILE, 'w')
 
-
+messages = Messages()

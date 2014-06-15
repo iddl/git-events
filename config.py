@@ -1,4 +1,6 @@
 import configparser
+from bootstrap import *
+from messages import *
 
 CFG_FILE = 'cfg.ini'
 
@@ -32,3 +34,12 @@ class Config:
         if self.configuration.has_option('Account', 'username'):
             return True
         return False
+
+configuration = Config()
+settings = configuration.get()
+if not configuration.is_set_up():
+    bootstrapper = Bootstrap(configuration)
+    try:
+        bootstrapper.setup()
+    except Exception as boostrap_exception:
+        messages.abort(Messages.SETUP_FAIL)

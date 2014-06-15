@@ -1,5 +1,5 @@
 import subprocess, os, sys
-from messages import Messages
+from messages import *
 
 class NotificationDisplayer:
 
@@ -38,3 +38,8 @@ class NotificationDisplayerFactory:
             return NotificationDisplayerGrowlnotify()
         else:
             raise Exception(Messages.INCOMPATIBLE_OS)
+
+try:
+    notification_system = NotificationDisplayerFactory().get()
+except Exception as notificationSystemException:
+    messages.abort(notificationSystemException)
