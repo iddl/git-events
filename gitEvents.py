@@ -1,19 +1,22 @@
 import os, atexit, signal, sys
 import argparse
-from messages import *
-from processes import running_process
+from messages import messages_provider
+from processes import processes_provider
 from core import Core
+
+running_process= processes_provider.get()
+messages = messages_provider.get()
 
 def stop():
     if not running_process.is_running():
-        messages.abort(Messages.NOT_RUNNING)
+        messages.abort(messages.NOT_RUNNING)
     pid = running_process.get_pid()
     try:
         os.kill(pid, signal.SIGTERM)
     except Exception as processKillException:
         pass
     cleanup()
-    messages.print_success(Messages.STOPPED)
+    messages.print_success(messages.STOPPED)
 
 def cleanup():
     running_process.unregister_process()
@@ -25,14 +28,14 @@ def daemonize():
         atexit.register(cleanup)
         running_process.register_process()
         signal.signal(signal.SIGTERM, cleanup)
-        messages.print_success(Messages.RUNNING)
+        messages.print_success(messages.RUNNING)
         messages.use_logfile()
     else:
         sys.exit(0)
 
 def start(daemon=True):
     if running_process.is_running():
-        messages.abort(Messages.WAS_RUNNING)
+        messages.abort(messages.WAS_RUNNING)
 
     core = Core()
 

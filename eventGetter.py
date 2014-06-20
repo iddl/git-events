@@ -1,6 +1,9 @@
 import requests, re, datetime, json, datetime, time
-from messages import *
-from config import settings
+from messages import messages_provider
+from config import config_provider
+
+settings = config_provider.get()
+messages = messages_provider.get()
 
 GITHUB_EVENT_ENDPOINT = 'https://api.github.com/users/:username/received_events'
 
@@ -26,7 +29,7 @@ class EventGetterGithub:
         request_headers = {'Authorization' : "token " + self.authorization}
         etagrequest = requests.get(endpoint, headers=request_headers)
         if etagrequest.status_code != requests.codes.ok:
-            raise Exception(Messages.GITHUB_API_ERROR)
+            raise Exception(messages.GITHUB_API_ERROR)
         etag = etagrequest.headers["etag"]
         return etag
 
@@ -55,7 +58,17 @@ class EventGetterGithub:
         else:
             raise Exception()
 
-try:
-    notifications = EventGetterFactory().get(settings)
-except Exception as eventGetterException:
-    messages.abort(eventGetterException)
+class EventGetterProvider:
+
+    def __init__(self):
+        self.instance = None
+
+    def get(self):
+        if self.instance is None:
+            try:
+                self.instance = EventGetterFactory().get(settings)
+            except Exception as eventGetterException:
+                messages.abort(eventGetterException)
+        return self.instance
+
+eventgetter_provider = EventGetterProvider()

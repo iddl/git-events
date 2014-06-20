@@ -1,10 +1,13 @@
 from eventFilter import *
-from messages import Messages
+from config import config_provider
+from notificationDisplayer import notifications_provider
+from eventGetter import eventgetter_provider
+from messages import messages_provider
 
-from config import settings
-from notificationDisplayer import notification_system
-from eventGetter import notifications
-from messages import messages
+messages = messages_provider.get()
+notification_system = notifications_provider.get()
+event_getter = eventgetter_provider.get()
+settings = config_provider.get()
 
 #using dependency injection on this
 class Core:
@@ -18,13 +21,13 @@ class Core:
     def tick(self):
         self.time_filter.set_interval(self.last_update_at)
         self.last_update_at = datetime.datetime.utcnow()
-        current_feed = notifications.get_unread()
+        current_feed = event_getter.get_unread()
         events = self.notification_filter.extract(current_feed)
         for event in events:
             notification_system.display(event['message'])
 
     def start(self):
-        messages.print_success(Messages.RUNNING)
+        messages.print_success(messages.RUNNING)
         polling_interval = settings.getint('Connection','pollinginterval')
 
         while(True):

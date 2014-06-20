@@ -1,5 +1,7 @@
 import subprocess, os, sys
-from messages import *
+from messages import messages_provider
+
+messages = messages_provider.get()
 
 class NotificationDisplayer:
 
@@ -37,9 +39,19 @@ class NotificationDisplayerFactory:
         elif sys.platform == 'darwin':
             return NotificationDisplayerGrowlnotify()
         else:
-            raise Exception(Messages.INCOMPATIBLE_OS)
+            raise Exception(messages.INCOMPATIBLE_OS)
 
-try:
-    notification_system = NotificationDisplayerFactory().get()
-except Exception as notificationSystemException:
-    messages.abort(notificationSystemException)
+class NotificationDisplayerProvider:
+
+    def __init__(self):
+        self.instance = None
+
+    def get(self):
+        if self.instance is None:
+            try:
+                self.instance = NotificationDisplayerFactory().get()
+            except Exception as notificationSystemException:
+                messages.abort(notificationSystemException)
+        return self.instance
+
+notifications_provider = NotificationDisplayerProvider()

@@ -41,4 +41,14 @@ class Messages():
         sys.stdout = open(self.LOGFILE, 'w')
         sys.stderr = open(self.LOGFILE, 'w')
 
-messages = Messages()
+class MessagesProvider():
+
+    def __init__(self):
+        self.instance = None
+
+    def get(self):
+        if self.instance is None:
+            self.instance = Messages()
+        return self.instance
+
+messages_provider = MessagesProvider()

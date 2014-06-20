@@ -27,4 +27,15 @@ class Processes():
             handle.close()
             return pid
 
-running_process = Processes()
+
+class ProcessesProvider():
+
+    def __init__(self):
+        self.instance = None
+
+    def get(self):
+        if self.instance is None:
+            self.instance = Processes()
+        return self.instance
+
+processes_provider = ProcessesProvider()
