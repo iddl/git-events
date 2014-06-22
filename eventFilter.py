@@ -1,4 +1,7 @@
 import time, datetime
+from avatars import avatar_provider
+
+avatar = avatar_provider.get()
 
 class UserProfile:
 
@@ -8,6 +11,7 @@ class UserProfile:
         user['name'] = profile['login']
         user['id'] = profile['id']
         user['avatar'] = profile['avatar_url']
+        user['avatar_file'] = avatar.get(user['avatar'])
         return user
 
 # This is used to access deeply nested dictionaries

@@ -15,8 +15,9 @@ class NotificationDisplayerNotifySend(NotificationDisplayer):
         NotificationDisplayer.__init__(self)
         return
 
-    def display(self, message):
-        subprocess.Popen(['notify-send', '-i', self.icon, message])
+    def display(self, event):
+        icon = os.path.abspath(event["author"]["avatar_file"])
+        subprocess.Popen(['notify-send', '-i', icon, event["message"]])
 
 class NotificationDisplayerGrowlnotify(NotificationDisplayer):
 

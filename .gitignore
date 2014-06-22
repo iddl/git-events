@@ -7,6 +7,9 @@
 *.log
 *.pid
 
+#working directory
+.tmp
+
 # Test files (for now)
 tests
 

@@ -24,7 +24,7 @@ class Core:
         current_feed = event_getter.get_unread()
         events = self.notification_filter.extract(current_feed)
         for event in events:
-            notification_system.display(event['message'])
+            notification_system.display(event)
 
     def start(self):
         messages.print_success(messages.RUNNING)
