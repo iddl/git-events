@@ -1,6 +1,11 @@
 import configparser
+from bootstrap import *
+from messages import messages_provider
+
+messages = messages_provider.get()
 
 CFG_FILE = 'cfg.ini'
+
 
 class Config:
 
@@ -14,6 +19,7 @@ class Config:
     def create_default_config(self):
         self.configuration['Connection'] = { 'pollinginterval' : 1 }
         self.configuration['Account'] = {}
+        self.configuration['Internal'] = {'cache_directory' : '.tmp/cache', 'log_directory' : '.tmp'}
         self.save_config()
 
     # should not have the section argument to resemble a
@@ -32,3 +38,23 @@ class Config:
         if self.configuration.has_option('Account', 'username'):
             return True
         return False
+
+
+class ConfigProvider():
+
+    def __init__(self):
+        self.instance = None
+
+    def get(self):
+        if self.instance is None:
+            configuration = Config()
+            instance = configuration.get()
+            if not configuration.is_set_up():
+                bootstrapper = Bootstrap(configuration)
+                try:
+                    bootstrapper.setup()
+                except Exception as boostrap_exception:
+                    messages.abort(messages.SETUP_FAIL)
+        return instance
+
+config_provider = ConfigProvider()

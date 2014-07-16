@@ -1,4 +1,18 @@
 import time, datetime
+from avatars import avatar_provider
+
+avatar = avatar_provider.get()
+
+class UserProfile:
+
+    @staticmethod
+    def extract(profile):
+        user = dict()
+        user['name'] = profile['login']
+        user['id'] = profile['id']
+        user['avatar'] = profile['avatar_url']
+        user['avatar_file'] = avatar.get(user['avatar'])
+        return user
 
 # This is used to access deeply nested dictionaries
 # as checking whether a key exists at each access
@@ -27,12 +41,12 @@ class CommentEvent:
 
     def extract(self, event):
         formatted_event = dict()
-        comment_author = NestedDict.extract(event, ["actor", "login"])
+        comment_author = UserProfile.extract(event["actor"])
         comment_content = NestedDict.extract(event, ["payload", "comment", "body"])
         comment_repo = NestedDict.extract(event, ["repo", "name"])
-        formatted_event['message'] = comment_author + ' commented on ' + comment_repo + ': ' + comment_content
+        formatted_event['author'] = comment_author
+        formatted_event['message'] = comment_author["name"] + ' commented on ' + comment_repo + ': ' + comment_content
         return formatted_event
-
 
 class PullRequestEvent:
 
@@ -44,9 +58,10 @@ class PullRequestEvent:
 
     def extract(self, event):
         formatted_event = dict()
-        pullrequest_author = NestedDict.extract(event, ["actor", "login"])
+        pullrequest_author = UserProfile.extract(event["actor"])
         pullrequest_title = NestedDict.extract(event, ["payload", "pull_request", "title"])
-        formatted_event['message'] = pullrequest_author + ' made a pull request: ' + pullrequest_title
+        formatted_event['author'] = pullrequest_author
+        formatted_event['message'] = pullrequest_author["name"] + ' made a pull request: ' + pullrequest_title
         return formatted_event
 
 class PushEvent:
@@ -59,11 +74,12 @@ class PushEvent:
 
     def extract(self, event):
         formatted_event = dict()
-        push_author = NestedDict.extract(event, ["actor", "login"])
+        push_author = UserProfile.extract(event["actor"])
         push_commits = NestedDict.extract(event, ["payload", "commits"])
         push_branch = NestedDict.extract(event, ["payload", "ref"])
         push_commit_messages = list(map(lambda commit: commit["message"], push_commits))
-        formatted_event["message"] = push_author + ' pushed to ' + push_branch + ': '
+        formatted_event['author'] = push_author
+        formatted_event["message"] = push_author["name"] + ' pushed to ' + push_branch + ': '
         for message in push_commit_messages:
             formatted_event["message"] += (message + ' ')
         return formatted_event

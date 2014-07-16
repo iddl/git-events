@@ -1,5 +1,7 @@
 import subprocess, os, sys
-from messages import Messages
+from messages import messages_provider
+
+messages = messages_provider.get()
 
 class NotificationDisplayer:
 
@@ -13,8 +15,9 @@ class NotificationDisplayerNotifySend(NotificationDisplayer):
         NotificationDisplayer.__init__(self)
         return
 
-    def display(self, message):
-        subprocess.Popen(['notify-send', '-i', self.icon, message])
+    def display(self, event):
+        icon = os.path.abspath(event["author"]["avatar_file"])
+        subprocess.Popen(['notify-send', '-i', icon, event["message"]])
 
 class NotificationDisplayerGrowlnotify(NotificationDisplayer):
 
@@ -37,4 +40,19 @@ class NotificationDisplayerFactory:
         elif sys.platform == 'darwin':
             return NotificationDisplayerGrowlnotify()
         else:
-            raise Exception(Messages.INCOMPATIBLE_OS)
+            raise Exception(messages.INCOMPATIBLE_OS)
+
+class NotificationDisplayerProvider:
+
+    def __init__(self):
+        self.instance = None
+
+    def get(self):
+        if self.instance is None:
+            try:
+                self.instance = NotificationDisplayerFactory().get()
+            except Exception as notificationSystemException:
+                messages.abort(notificationSystemException)
+        return self.instance
+
+notifications_provider = NotificationDisplayerProvider()
